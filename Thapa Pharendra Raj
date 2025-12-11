@@ -1,66 +1,68 @@
-import random
 import os
+import random
 
-print("Welcome to Professor Assistant Version 1.1")
+print("Welcome to Professor Assistant 1.0\n")
 
-# Ask for name
-professor_name = input("Please enter your name: ")
-print(f"Hello Professor {professor_name}, I will help you create exams from your question bank.\n")
+name = input("Enter your name: ")
+print(f"\nHello Professor {name}. Let's make your exam.\n")
 
-def load_question_bank(path):
-    """Reads a question bank into a list of (question, answer) pairs."""
+
+def read_bank(path):
+    # reads question/answer pairs (each Q followed by A)
     if not os.path.exists(path):
         return None
 
-    with open(path, "r", encoding="utf-8") as file:
-        lines = [line.strip() for line in file.readlines()]
+    with open(path, "r", encoding="utf-8") as f:
+        lines = [l.strip() for l in f]
 
-    question_pairs = []
-    for i in range(0, len(lines), 2):
-        if i + 1 < len(lines):
-            question_pairs.append((lines[i], lines[i+1]))
-
-    return question_pairs
+    pairs = []
+    i = 0
+    while i < len(lines) - 1:
+        pairs.append((lines[i], lines[i+1]))
+        i += 2
+    return pairs
 
 
 while True:
-    choice = input("Do you want to create an exam? (Yes to proceed | No to quit): ")
+    opt = input("Create an exam? (Yes/No): ").strip().lower()
 
-    if choice.lower() == "no":
-        print(f"Thank you Professor {professor_name}. Have a wonderful day!")
+    if opt == "no":
+        print(f"\nAlright Professor {name}, have a nice day.")
         break
 
-    # Ask for question bank path
-    path = input("Please enter the path to your question bank: ")
+    if opt == "yes":
+        path = input("\nPath to question bank: ").strip()
+        bank = read_bank(path)
 
-    question_pairs = load_question_bank(path)
+        if bank is None:
+            print("\nCould not find the file. Try again.\n")
+            continue
 
-    if question_pairs is None:
-        print("❌ Invalid path. Please try again.\n")
-        continue
+        print("Question bank loaded.\n")
 
-    print("✔ Your question bank has been loaded successfully.")
+        # number of questions
+        try:
+            n = int(input("How many questions do you want? "))
+        except:
+            print("Please enter a number.\n")
+            continue
 
-    try:
-        num_questions = int(input("How many question–answer pairs do you want to include in the exam? "))
-    except ValueError:
-        print("❌ Invalid input. Please enter an integer.\n")
-        continue
+        if n > len(bank):
+            print(f"\nOnly {len(bank)} available, using all of them.\n")
+            n = len(bank)
 
-    if num_questions > len(question_pairs):
-        print("❌ Your question bank does not contain that many questions.\n")
-        continue
+        outname = input("Save exam as (filename): ").strip()
 
-    output_file = input("Where do you want to save the exam file? ")
+        chosen = random.sample(bank, n)
 
-    # Select random questions
-    selected = random.sample(question_pairs, num_questions)
+        with open(outname, "w", encoding="utf-8") as out:
+            out.write(f"Exam for Professor {name}\n\n")
+            for idx, (q, a) in enumerate(chosen, 1):
+                out.write(f"{idx}. {q}\n")
+                out.write(f"Ans: {a}\n\n")
 
-    # Write output file
-    with open(output_file, "w", encoding="utf-8") as file:
-        for q, a in selected:
-            file.write("Q: " + q + "\n")
-            file.write("A: " + a + "\n\n")
+        print(f"\nExam saved in '{outname}'.\n")
 
-    print(f"🎉 Exam created successfully, Professor {professor_name}.")
-    print(f"📄 File saved at: {output_file}\n")
+    else:
+        print("Please answer Yes or No.\n")
+

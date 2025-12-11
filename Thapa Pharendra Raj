@@ -1,0 +1,66 @@
+import random
+import os
+
+print("Welcome to Professor Assistant Version 1.1")
+
+# Ask for name
+professor_name = input("Please enter your name: ")
+print(f"Hello Professor {professor_name}, I will help you create exams from your question bank.\n")
+
+def load_question_bank(path):
+    """Reads a question bank into a list of (question, answer) pairs."""
+    if not os.path.exists(path):
+        return None
+
+    with open(path, "r", encoding="utf-8") as file:
+        lines = [line.strip() for line in file.readlines()]
+
+    question_pairs = []
+    for i in range(0, len(lines), 2):
+        if i + 1 < len(lines):
+            question_pairs.append((lines[i], lines[i+1]))
+
+    return question_pairs
+
+
+while True:
+    choice = input("Do you want to create an exam? (Yes to proceed | No to quit): ")
+
+    if choice.lower() == "no":
+        print(f"Thank you Professor {professor_name}. Have a wonderful day!")
+        break
+
+    # Ask for question bank path
+    path = input("Please enter the path to your question bank: ")
+
+    question_pairs = load_question_bank(path)
+
+    if question_pairs is None:
+        print("❌ Invalid path. Please try again.\n")
+        continue
+
+    print("✔ Your question bank has been loaded successfully.")
+
+    try:
+        num_questions = int(input("How many question–answer pairs do you want to include in the exam? "))
+    except ValueError:
+        print("❌ Invalid input. Please enter an integer.\n")
+        continue
+
+    if num_questions > len(question_pairs):
+        print("❌ Your question bank does not contain that many questions.\n")
+        continue
+
+    output_file = input("Where do you want to save the exam file? ")
+
+    # Select random questions
+    selected = random.sample(question_pairs, num_questions)
+
+    # Write output file
+    with open(output_file, "w", encoding="utf-8") as file:
+        for q, a in selected:
+            file.write("Q: " + q + "\n")
+            file.write("A: " + a + "\n\n")
+
+    print(f"🎉 Exam created successfully, Professor {professor_name}.")
+    print(f"📄 File saved at: {output_file}\n")
